@@ -14,17 +14,22 @@ my(%TOC, @minimal, @sc17a);
 # minimal: for quick tests of script infrastructure
 @minimal = (
     #  nodes, vpicdumps,   px,  py,  pz,   ppn,  maxtime
-    [      2,         2,    1,   4,   1,     4,       10 ],    # run 0
+    [      2,         2,    4,   2,   0,     4,       10 ],    # run 0
     );
 
 # sc17a: for paper draft
 @sc17a = (
     #  nodes, vpicdumps,   px,  py,  pz,   ppn,  maxtime
-    [      1,         2,    1,   4,   1,    32,      10 ],     # run 0
-    [      1,         8,    2,  20,   2,    32,      10 ],     # run 1
-    [      4,         8,    2,  20,   2,    32,      10 ],     # run 2
-    [     16,         8,    2,  20,   2,    32,      10 ],     # run 3
-    [     64,         8,    2,  20,   2,    32,      10 ],     # run 4
+    [      1,         2,    4,   2,   0,    32,      10 ],     # run 0
+    [      1,         8,   16,   4,   0,    32,      50 ],     # run 1
+    [      2,         8,   16,   4,   0,    32,      55 ],     # run 2
+    [      4,         8,   16,   4,   0,    32,      60 ],     # run 3
+    [      8,         8,   16,   4,   0,    32,      65 ],     # run 4
+    [     16,         8,   16,   4,   0,    32,      70 ],     # run 5
+    [     32,         8,   16,   4,   0,    32,      80 ],     # run 6
+    [     64,         8,   16,   4,   0,    32,     100 ],     # run 7
+    [     96,         8,   16,   4,   0,    32,     120 ],     # run 8
+    [    128,         8,   16,   4,   0,    32,     150 ],     # run 9
     );
 
 # table of contents (experiments available)
