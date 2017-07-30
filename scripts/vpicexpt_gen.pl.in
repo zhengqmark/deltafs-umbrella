@@ -9,7 +9,7 @@ use strict;
 ##############################################################################
 # define experiments here
 ##############################################################################
-my(%TOC, @minimal, @sc17b);
+my(%TOC, @minimal, @sc17b, @sc17c);
 
 # minimal: for quick tests of script infrastructure
 @minimal = (
@@ -31,10 +31,21 @@ my(%TOC, @minimal, @sc17b);
     [     32,     3,   375,  16,   4,   0,  32,  100,   96,  "3072GiB"],  # run 6
     );
 
+# sc17c: for paper draft
+@sc17c = (
+    #          vpic   vpic                       max  base
+    #  nodes, dumps, steps,  px,  py,  pz, ppn, time, xtra,     dwsize
+    [      1,     2,   250,   4,   2,   0,  32,   10,    1,    "10GiB"],  # run 0
+    [     32,     4,   500,  16,   4,   0,  32,  100,   96,  "5120GiB"],  # run 1
+    [     64,     4,   500,  16,   4,   0,  32,  110,  192, "10240GiB"],  # run 2
+    [     96,     4,   500,  16,   4,   0,  32,  120,  384, "15360GiB"],  # run 3
+    );
+
 # table of contents (experiments available)
 %TOC = (
     "minimal" => \@minimal,
     "sc17b"   => \@sc17b,
+    "sc17c"   => \@sc17c,
     );
 ##############################################################################
 ##############################################################################
