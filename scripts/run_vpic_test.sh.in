@@ -44,10 +44,10 @@ cores_per_node=${4:-"4"}
 init_procs_per_node=${5:-"4"}
 procs_per_node_increase_step=${6:-"4"}
 num_vpic_dumps=${7:-"2"}
-num_vpic_steps=${8:-"200"}
-px_factor=${9:-"1"}
-py_factor=${10:-"4"}
-pz_factor=${11:-"1"}
+num_vpic_steps=${8:-"250"}
+px_factor=${9:-"4"}
+py_factor=${10:-"2"}
+pz_factor=${11:-"0"}
 bbos_buddies=${12:-"0"}
 should_skip_query=${13:-"0"}
 should_do_multipass_query=${14:-"0"}
@@ -87,8 +87,8 @@ procs_per_node=$init_procs_per_node
 while [ $procs_per_node -le $cores_per_node ]
 do
     cores=$((procs_per_node * nodes))
-    py=$((cores * py_factor))
-    px=$((10**px_factor))
+    px=$((cores * px_factor))
+    py=$((10**py_factor))
     pz=$((10**pz_factor))
     parts=$((px * py * pz * 100))
 
