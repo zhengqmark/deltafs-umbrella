@@ -20,12 +20,13 @@
 # -DDELTAFS_VERBOSE=0                 # how verbose deltafs will be
 #     (set to zero to disable verbose prints)
 #
-# -DVERBS=OFF                         # build with verbs
-# -DVERBS_PREFIX=dir                  # prefix path (optional)
-# -DVERBS_LIBDIR=dir                  # lib directory override (optional)
 # -DGNI=OFF                           # build with GNI
 # -DGNI_PREFIX=dir                    # prefix path (optional)
 # -DGNI_LIBDIR=dir                    # lib directory override (optional)
+# -DOFI=ON                            # build OFI libfabrics
+# -DVERBS=OFF                         # build with verbs
+# -DVERBS_PREFIX=dir                  # prefix path (optional)
+# -DVERBS_LIBDIR=dir                  # lib directory override (optional)
 #
 # finding dependencies:
 #
@@ -98,6 +99,7 @@ set (FORCE_OPA "OFF" CACHE BOOL "force mercury to use OPA atomic primitives")
 set (GNI "OFF" CACHE BOOL "build with GNI")
 set (GNI_PREFIX "" CACHE PATH "GNI prefix path (optional)")
 set (GNI_LIBDIR "" CACHE PATH "GNI lib directory override (optional)")
+set (OFI "ON" CACHE BOOL "build with OFI/libfabrics")
 set (VERBS "OFF" CACHE BOOL "build with verbs")
 set (VERBS_PREFIX "" CACHE PATH "VERBS prefix path (optional)")
 set (VERBS_LIBDIR "" CACHE PATH "VERBS lib directory override (optional)")
@@ -133,6 +135,7 @@ message (STATUS "  build tests: ${BUILD_TESTS} (skip running: ${SKIP_TESTS})")
 message (STATUS "  HG self-forward rpc: ${SELF_FORWARD}")
 message (STATUS "  HG post limit: ${POST_LIMIT}")
 message (STATUS "  HG force OPA: ${FORCE_OPA}")
+message (STATUS "  OFI/libfabrics: ${OFI}")
 
 #
 # GenDownloadConfig (result target local-file remote-args ...)
@@ -325,6 +328,40 @@ ExternalProject_Add_Step(bmi prepare
     WORKING_DIRECTORY <SOURCE_DIR>
 )
 
+if (OFI)
+    #
+    # ofi/libfabrics
+    #
+    GenDownloadConfig (ofi_download ofi ofi.tar.gz
+                       GIT_REPOSITORY "https://github.com/ofiwg/libfabric.git"
+                       GIT_TAG v1.5.0
+                       ### GIT_TAG master
+    )
+
+    if ("${CMAKE_SYSTEM_NAME}" STREQUAL "CrayLinuxEnvironment")
+      set (ofixtra --enable-gni --enable-ugni-static)
+    endif ()
+
+    ExternalProject_Add (ofi
+                         ${ofi_download}
+                         CONFIGURE_COMMAND <SOURCE_DIR>/configure ${ac_comp}
+                          --prefix=${CMAKE_INSTALL_PREFIX} ${ofixtra}
+        UPDATE_COMMAND ""
+    )
+
+    ExternalProject_Add_Step(ofi prepare
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/ensure-autogen
+                                                <SOURCE_DIR>/autogen.sh
+        COMMENT "preparing source for configure"
+        DEPENDEES update
+        DEPENDERS configure
+        WORKING_DIRECTORY <SOURCE_DIR>
+    )
+
+    set (ofidep ofi)
+    set (ofina -DNA_USE_OFI=ON)
+endif (OFI)
+
 #
 # mercury
 #
@@ -338,7 +375,7 @@ GenDownloadConfig (mercury_download mercury mercury-4fc4473c.tar.gz
 )
 
 ExternalProject_Add (mercury
-    DEPENDS cci bmi
+    DEPENDS cci bmi ${ofidep}
     ${mercury_download}
     CMAKE_ARGS -DNA_USE_MPI=OFF -DNA_USE_BMI=ON -DNA_USE_CCI=ON -DNA_USE_SM=ON
                -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=${BUILD_TESTS}
@@ -351,6 +388,7 @@ ExternalProject_Add (mercury
                -DNA_CCI_USE_POLL:BOOL=ON
                -DCCI_INCLUDE_DIR=${CMAKE_INSTALL_PREFIX}/include
                -DCCI_LIBRARY=${CMAKE_INSTALL_PREFIX}/lib/libcci${suf}
+               ${ofina}
     CMAKE_CACHE_ARGS ${init_cm_cache}
     UPDATE_COMMAND ""
 
@@ -423,7 +461,7 @@ ExternalProject_Add_Step (ssg prepare
 GenDownloadConfig (deltafs-common_download deltafs-common
                    deltafs-common-5b6f919.tar.gz
     GIT_REPOSITORY "https://github.com/pdlfs/pdlfs-common.git"
-    GIT_TAG v17.3
+    GIT_TAG v17.4
     ### GIT_TAG master
 )
 
@@ -467,7 +505,7 @@ ExternalProject_Add (deltafs-bb
 #
 GenDownloadConfig (deltafs_download deltafs deltafs-a30dd43.tar.gz
     GIT_REPOSITORY "https://github.com/pdlfs/deltafs.git"
-    GIT_TAG v2017.8.2
+    GIT_TAG v2017.9
     ### GIT_TAG master
 )
 
@@ -496,7 +534,7 @@ ExternalProject_Add (deltafs
 GenDownloadConfig (deltafs-nexus_download deltafs-nexus
                    deltafs-nexus.tar.gz
     GIT_REPOSITORY "https://github.com/pdlfs/deltafs-nexus.git"
-    GIT_TAG v1.2
+    GIT_TAG v1.3
     ### GIT_TAG master
 )
 
@@ -521,7 +559,7 @@ ExternalProject_Add (deltafs-nexus
 GenDownloadConfig (deltafs-vpic-preload_download deltafs-vpic-preload
                    deltafs-vpic-preload-v1.4b.tar.gz
     GIT_REPOSITORY "https://github.com/pdlfs/deltafs-vpic-preload.git"
-    GIT_TAG v1.16
+    GIT_TAG v1.17
     ### GIT_TAG master
 )
 
@@ -603,16 +641,16 @@ set_property (TARGET sndrcv-test PROPERTY EXCLUDE_FROM_ALL True)
 #
 # mercury-runner
 #
-GenDownloadConfig (mrun_download mercury-runner mercury-runner-2624612c.tar.gz
+GenDownloadConfig (mrun_download mercury-runner mercury-runner-773e6cc5.tar.gz
     GIT_REPOSITORY "https://github.com/pdlfs/mercury-runner.git"
-    GIT_TAG 2624612c
+    GIT_TAG 773e6cc5  # Sep 2017
     ### GIT_TAG master
 )
 
 ExternalProject_Add (mercury-runner
     DEPENDS mercury
     ${mrun_download}
-    ### CMAKE_ARGS -Dsomething=value
+    CMAKE_ARGS -DMPI=ON
     CMAKE_CACHE_ARGS ${init_cm_cache}
 
     UPDATE_COMMAND ""
